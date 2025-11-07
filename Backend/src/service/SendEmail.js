@@ -1,26 +1,25 @@
-import nodemailer from 'nodemailer';
 import dotenv from "dotenv"
+import {Resend} from "resend"
 
 dotenv.config()
 
+const resend = new Resend(process.env.RESEND)
+
 export const sendEmail = async ({ to, subject, html }) => {
+  const fromAddress = `Tasky <onboarding@resend.dev>`;
+
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail', 
-      port: 465,            
-      secure: true,   
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+    const { data, error } = await resend.emails.send({
+      from: fromAddress,
+      to: [to],
+      subject: subject,
+      html: html,
     });
-    const mailOptions = {
-      from: `${process.env.EMAIL_USER}`,
-      to,
-      subject,
-      html,
-    };
-    await transporter.sendMail(mailOptions);
+
+    if (error) {
+      console.error('Failed to send email via Resend:', error.message);
+      throw new Error('Failed to send email');
+    }
   } catch (error) {
     console.error('Failed to send email:', error);
     throw new Error('Failed to send email');
