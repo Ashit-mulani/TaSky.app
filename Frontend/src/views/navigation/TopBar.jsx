@@ -53,18 +53,13 @@ const TopBar = () => {
       )}
       {location.pathname.includes('project') && !location.pathname.includes('-P-Member') && (
         <div className='flex gap-2 items-center justify-center'>
-          <div className='relative group'>
-            <IconBtn
-              onClick={() => setTaskShowInBoard(true)}
-              className={`${taskShowInBoard ? 'bg-zinc-500/20 shadow' : 'hover:bg-zinc-500/20'} text-sm p-2 pr-3 rounded`}
-              text='Board'
-              icon={<Columns3 strokeWidth={2.5} size={18} className='mt-1' />}
-            />
-            <FaCrown
-              className='group-hover:scale-120 group-hover:-rotate-30 smooth border rounded-full p-[1px]  absolute -top-1 -left-1 text-yellow-500 shadow bg-yellow-50 shadow-yellow-500'
-              size={12}
-            />
-          </div>
+          <IconBtn
+            onClick={() => setTaskShowInBoard(true)}
+            className={`${taskShowInBoard ? 'bg-zinc-500/20 shadow' : 'hover:bg-zinc-500/20'} text-sm p-2 pr-3 rounded`}
+            text='Board'
+            icon={<Columns3 strokeWidth={2.5} size={18} className='mt-1' />}
+          />
+
           <IconBtn
             onClick={() => setTaskShowInBoard(false)}
             className={`${!taskShowInBoard ? 'bg-zinc-500/20 shadow' : ' hover:bg-zinc-500/20'} text-sm p-2 pr-3 rounded `}
@@ -77,12 +72,6 @@ const TopBar = () => {
       {/* for debug */}
       <div className='flex items-center gap-2'>
         <OrgTimeline />
-        <div
-          onClick={() => (console.log(user), console.log(org), console.log(project))}
-          className='cursor-pointer h-8 w-8 rounded border bg-zinc-800 dark:bg-zinc-200'
-        >
-          Log
-        </div>
       </div>
     </div>
   );

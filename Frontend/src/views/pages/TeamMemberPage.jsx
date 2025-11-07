@@ -71,7 +71,10 @@ const TeamMemberPage = () => {
           <div className='font-medium flex flex-wrap gap-2 items-center max-w-[70%]'>
             <div className='flex gap-2 items-center'>
               <TeamTimeline />
-              <p className='line-clamp-1'>{team ? `Team - ${team?.teamName}'s Members` : 'Not any Team selected'}</p>
+              <div className='flex flex-col gap-1'>
+                <p className='line-clamp-1'>{team ? `Team - ${team?.teamName}'s Members` : 'Not any Team selected'}</p>
+                <p className='text-xs text-zinc-500 line-clamp-1'>{team?.description || 'No description !'}</p>
+              </div>
             </div>
             <i
               onClick={() => {

@@ -17,9 +17,7 @@ const NotifierList = ({ className = '' }) => {
   const { messages, removeMessage, pauseTimer, resumeTimer } = useNotifier();
 
   return (
-    <div
-      className={`fixed ${className} flex flex-col space-y-2 z-200 w-[250px] `}
-    >
+    <div className={`fixed ${className} flex flex-col space-y-2 z-200 w-[260px] `}>
       {messages.map(({ id, text, type }) => (
         <div
           key={id}

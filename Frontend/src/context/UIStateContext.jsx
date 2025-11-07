@@ -25,7 +25,7 @@ export const UIStateProvider = ({ children }) => {
 
     showTaskComments,
     setShowTaskComments,
-
+    
     showConformation,
     setShowConformation,
   };

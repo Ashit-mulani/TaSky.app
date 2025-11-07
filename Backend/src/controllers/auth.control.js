@@ -7,7 +7,6 @@ import crypto from 'crypto';
 import { generateTokens } from '../utils/Token.js';
 import { getCookieOptions } from '../const.js';
 import { sendEmail } from '../service/SendEmail.js';
-import { redisPub } from '../config/redis.js';
 
 const getUser = asyncFunc(async (req, res) => {
   const userId = req.user._id;
@@ -22,12 +21,10 @@ const getUser = asyncFunc(async (req, res) => {
   //     new ApiRes(200, parsedUser, "User fetched from cache")
   //   );
   // }
-  const user = await User.findById(userId)
-    .select('-password -refreshToken -otp')
-    .populate({
-      path: 'inOrg.org',
-      sselect: 'orgName',
-    });
+  const user = await User.findById(userId).select('-password -refreshToken -otp').populate({
+    path: 'inOrg.org',
+    sselect: 'orgName',
+  });
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
@@ -91,15 +88,7 @@ const register = asyncFunc(async (req, res) => {
     throw new ApiError(409, 'User already exists with this email');
   }
   if (existingUser) {
-    return res
-      .status(400)
-      .json(
-        new ApiRes(
-          400,
-          { userId: existingUser._id },
-          'User already exists with this Email'
-        )
-      );
+    return res.status(400).json(new ApiRes(400, { userId: existingUser._id }, 'User already exists with this Email'));
   }
   const profilePhotoUrl = req.file?.path;
   let profilePhoto = null;
@@ -148,11 +137,7 @@ const register = asyncFunc(async (req, res) => {
   return res
     .status(201)
     .json(
-      new ApiRes(
-        201,
-        { userEmail: createdUser.email },
-        'User register successfuly, OTP has been sent to your email'
-      )
+      new ApiRes(201, { userEmail: createdUser.email }, 'User register successfuly, OTP has been sent to your email')
     );
 });
 
@@ -215,13 +200,7 @@ const verifyOtp = asyncFunc(async (req, res) => {
     .status(200)
     .cookie('accessToken', accessToken, getCookieOptions('access'))
     .cookie('refreshToken', refreshToken, getCookieOptions('refresh'))
-    .json(
-      new ApiRes(
-        200,
-        logedinUser,
-        'Email successfully verified. You can now log in.'
-      )
-    );
+    .json(new ApiRes(200, logedinUser, 'Email successfully verified. You can now log in.'));
 });
 
 const resendOtp = asyncFunc(async (req, res) => {
@@ -265,9 +244,7 @@ const resendOtp = asyncFunc(async (req, res) => {
       </div>
       `,
   });
-  return res
-    .status(200)
-    .json(new ApiRes(200, null, 'OTP has been resent to your email'));
+  return res.status(200).json(new ApiRes(200, null, 'OTP has been resent to your email'));
 });
 
 const login = asyncFunc(async (req, res) => {
@@ -342,13 +319,9 @@ const updateUser = asyncFunc(async (req, res) => {
   }
   if (req.file) {
     const profilePhotoUrl = req.file?.path;
-    const profilePhotoFromCloudinary =
-      await uploadOnCloudinary(profilePhotoUrl);
+    const profilePhotoFromCloudinary = await uploadOnCloudinary(profilePhotoUrl);
     if (!profilePhotoFromCloudinary) {
-      throw new ApiError(
-        500,
-        'Profile picture upload failed. Please try again'
-      );
+      throw new ApiError(500, 'Profile picture upload failed. Please try again');
     }
     updateData.profilePhoto = profilePhotoFromCloudinary.url;
   }
@@ -360,9 +333,7 @@ const updateUser = asyncFunc(async (req, res) => {
       path: 'inOrg.org',
       sselect: 'orgName',
     });
-  return res
-    .status(200)
-    .json(new ApiRes(200, updatedUser, 'User details updated successfully'));
+  return res.status(200).json(new ApiRes(200, updatedUser, 'User details updated successfully'));
 });
 
 const logOut = asyncFunc(async (req, res) => {
@@ -418,9 +389,7 @@ const resetPasswordOtp = asyncFunc(async (req, res) => {
       </div>
       `,
   });
-  return res
-    .status(200)
-    .json(new ApiRes(200, email, `OTP has been sent to ${email}`));
+  return res.status(200).json(new ApiRes(200, email, `OTP has been sent to ${email}`));
 });
 
 const forgotPassword = asyncFunc(async (req, res) => {
@@ -436,10 +405,7 @@ const forgotPassword = asyncFunc(async (req, res) => {
     throw new ApiError(400, 'OTP and new password are required');
   }
   if (!user.resetPasswordOtp) {
-    throw new ApiError(
-      400,
-      'No OTP found. please try again for reset password'
-    );
+    throw new ApiError(400, 'No OTP found. please try again for reset password');
   }
   if (new Date() > new Date(user.resetPasswordOtp.expiresAt)) {
     user.resetPasswordOtp = undefined;
@@ -452,19 +418,7 @@ const forgotPassword = asyncFunc(async (req, res) => {
   user.password = password;
   user.resetPasswordOtp = undefined;
   await user.save();
-  return res
-    .status(200)
-    .json(new ApiRes(200, null, 'Password reset successfully'));
+  return res.status(200).json(new ApiRes(200, null, 'Password reset successfully'));
 });
 
-export {
-  getUser,
-  register,
-  verifyOtp,
-  resendOtp,
-  login,
-  updateUser,
-  logOut,
-  resetPasswordOtp,
-  forgotPassword,
-};
+export { getUser, register, verifyOtp, resendOtp, login, updateUser, logOut, resetPasswordOtp, forgotPassword };

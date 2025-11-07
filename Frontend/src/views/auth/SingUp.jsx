@@ -67,7 +67,7 @@ const SingUp = () => {
         <div className='flex flex-col items-center justify-center'>
           <span className='text-xl font-semibold'>Create Account</span>
           <span className='text-sm text-zinc-500'>
-            Create your new Account with Gmail !{' '}
+            Create your new Account with Gmail !
           </span>
         </div>
         <form

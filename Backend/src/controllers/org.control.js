@@ -9,7 +9,6 @@ import { ApiRes } from '../utils/ApiRes.js';
 import { asyncFunc } from '../utils/asyncFunc.js';
 import { sendEmail } from '../service/SendEmail.js';
 import { uploadOnCloudinary } from '../service/Cloudinary.js';
-import { redisPub } from '../config/redis.js';
 import Section from '../model/project/Section.js';
 import Task from '../model/project/Task.js';
 
@@ -43,10 +42,7 @@ const createOrg = asyncFunc(async (req, res) => {
     ],
   });
   if (!newOrg) {
-    throw new ApiError(
-      400,
-      'Something went wrong while creating the organization'
-    );
+    throw new ApiError(400, 'Something went wrong while creating the organization');
   }
   const updatedUser = await User.findByIdAndUpdate(
     user._id,
@@ -64,9 +60,7 @@ const createOrg = asyncFunc(async (req, res) => {
     select: 'orgName orgProfilePhoto',
   });
 
-  const addedOrgEntry = updatedUser.inOrg.find(
-    entry => entry.org._id.toString() === newOrg._id.toString()
-  );
+  const addedOrgEntry = updatedUser.inOrg.find(entry => entry.org._id.toString() === newOrg._id.toString());
   return res.status(200).json(
     new ApiRes(
       200,
@@ -88,7 +82,6 @@ const updateOrg = asyncFunc(async (req, res) => {
   const user = req.user;
   const { orgName, description } = req.body;
   const org = req.org;
-  redisPub.del(`org:${org._id.toString()}`);
   const orgProfilePhotoUrl = req.file?.path;
   let orgProfilePhoto = null;
   if (orgProfilePhotoUrl) {
@@ -105,11 +98,7 @@ const updateOrg = asyncFunc(async (req, res) => {
   if (description) org.description = description;
   if (orgProfilePhoto) org.orgProfilePhoto = orgProfilePhoto?.url || null;
   const updatedOrg = await org.save();
-  return res
-    .status(200)
-    .json(
-      new ApiRes(200, updatedOrg, "Organization's details updated successfully")
-    );
+  return res.status(200).json(new ApiRes(200, updatedOrg, "Organization's details updated successfully"));
 });
 
 const deleteOrg = asyncFunc(async (req, res) => {
@@ -120,10 +109,7 @@ const deleteOrg = asyncFunc(async (req, res) => {
     throw new ApiError(403, 'Invalid Organization name');
   }
   if (user._id.toString() !== org.createdBy.toString()) {
-    throw new ApiError(
-      403,
-      'Only the organization owner can delete the organization'
-    );
+    throw new ApiError(403, 'Only the organization owner can delete the organization');
   }
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -182,11 +168,7 @@ const deleteOrg = asyncFunc(async (req, res) => {
       { session }
     );
 
-    const sections = await Section.find(
-      { inProject: { $in: org.projects } },
-      null,
-      { session }
-    );
+    const sections = await Section.find({ inProject: { $in: org.projects } }, null, { session });
     const sectionIds = sections.map(s => s._id);
 
     await Task.deleteMany({ inSection: { $in: sectionIds } }, { session });
@@ -195,16 +177,11 @@ const deleteOrg = asyncFunc(async (req, res) => {
     await Organization.findByIdAndDelete(org._id, { session });
     await session.commitTransaction();
     session.endSession();
-    return res
-      .status(200)
-      .json(new ApiRes(200, null, 'Organization deleted successfully'));
+    return res.status(200).json(new ApiRes(200, null, 'Organization deleted successfully'));
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    throw new ApiError(
-      500,
-      'Failed to delete organization due to a server error, Please try again later'
-    );
+    throw new ApiError(500, 'Failed to delete organization due to a server error, Please try again later');
   }
 });
 
@@ -217,14 +194,9 @@ const inviteMember = asyncFunc(async (req, res) => {
   }
   const user = await User.findOne({ email });
   if (!user) {
-    throw new ApiError(
-      400,
-      'User with this email does not Exists, make sure that user have an account'
-    );
+    throw new ApiError(400, 'User with this email does not Exists, make sure that user have an account');
   }
-  const isMember = user.inOrg.some(
-    o => o.org.toString() === org._id.toString()
-  );
+  const isMember = user.inOrg.some(o => o.org.toString() === org._id.toString());
   if (isMember) {
     throw new ApiError(400, 'This user is already part of the organization');
   }
@@ -280,9 +252,7 @@ const inviteMember = asyncFunc(async (req, res) => {
       </div>
       `,
   });
-  return res
-    .status(200)
-    .json(new ApiRes(200, invite, 'invitation sent successfully'));
+  return res.status(200).json(new ApiRes(200, invite, 'invitation sent successfully'));
 });
 
 const acceptInviteForOrg = asyncFunc(async (req, res) => {
@@ -360,10 +330,7 @@ const acceptInviteForOrg = asyncFunc(async (req, res) => {
   } catch (error) {
     await session.commitTransaction();
     session.endSession();
-    throw new ApiError(
-      500,
-      'Failed to accept invitation due to a server error, Please try again later'
-    );
+    throw new ApiError(500, 'Failed to accept invitation due to a server error, Please try again later');
   }
 });
 
@@ -378,15 +345,10 @@ const declineInviteForOrg = asyncFunc(async (req, res) => {
     throw new ApiError(400, 'The Invitation is invalid');
   }
   if (user.email !== invite.email) {
-    throw new ApiError(
-      400,
-      `This invitation is only for ${invite.email} you can't decline this.`
-    );
+    throw new ApiError(400, `This invitation is only for ${invite.email} you can't decline this.`);
   }
   await Invite.findByIdAndDelete(inviteId);
-  return res
-    .status(200)
-    .json(new ApiRes(200, null, 'Invite declined successfully'));
+  return res.status(200).json(new ApiRes(200, null, 'Invite declined successfully'));
 });
 
 const removeMemberFromOrg = asyncFunc(async (req, res) => {
@@ -396,18 +358,13 @@ const removeMemberFromOrg = asyncFunc(async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(memberId)) {
     throw new ApiError(400, 'Invalid member ID');
   }
-  const isMemberInOrg = org.members.some(
-    m => m.member.toString() == memberId.toString()
-  );
+  const isMemberInOrg = org.members.some(m => m.member.toString() == memberId.toString());
   if (!isMemberInOrg) {
     throw new ApiError(400, 'This member is not part of this Organization');
   }
   const isOwner = org.createdBy.toString() == memberId.toString();
   if (isOwner) {
-    throw new ApiError(
-      400,
-      "This is the owner of Organization you can't remove owner"
-    );
+    throw new ApiError(400, "This is the owner of Organization you can't remove owner");
   }
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -546,14 +503,9 @@ const changeOrgMemberRole = asyncFunc(async (req, res) => {
   }
   const isOwner = org.createdBy.toString() === memberId.toString();
   if (isOwner) {
-    throw new ApiError(
-      400,
-      "This member is owner of Organization you can't change the role for owner"
-    );
+    throw new ApiError(400, "This member is owner of Organization you can't change the role for owner");
   }
-  const member = org.members.find(
-    m => m.member.toString() === memberId.toString()
-  );
+  const member = org.members.find(m => m.member.toString() === memberId.toString());
   await org.populate({
     path: 'members.member',
     select: 'userName',
@@ -586,9 +538,7 @@ const changeOrgMemberRole = asyncFunc(async (req, res) => {
     select: 'userName email profilePhoto',
   });
 
-  const updatedMember = updatedOrg.members.find(
-    m => m.member._id.toString() === memberId
-  );
+  const updatedMember = updatedOrg.members.find(m => m.member._id.toString() === memberId);
 
   if (!updatedMember) {
     throw new ApiError(500, 'Failed to fetch updated member');
@@ -606,26 +556,19 @@ const changeOrgMemberRole = asyncFunc(async (req, res) => {
     },
   };
 
-  return res
-    .status(200)
-    .json(new ApiRes(200, cleanedMember, 'Member role updated successfully'));
+  return res.status(200).json(new ApiRes(200, cleanedMember, 'Member role updated successfully'));
 });
 
 const leaveOrg = asyncFunc(async (req, res) => {
   const org = req.org;
   const user = req.user;
-  const isMemberInOrg = org.members.some(
-    m => m.member.toString() == user._id.toString()
-  );
+  const isMemberInOrg = org.members.some(m => m.member.toString() == user._id.toString());
   if (!isMemberInOrg) {
     throw new ApiError(400, 'You are not a part of this organization');
   }
   const isOwner = org.createdBy.toString() == user._id.toString();
   if (isOwner) {
-    throw new ApiError(
-      400,
-      'You can not leave the organization as you are the owner'
-    );
+    throw new ApiError(400, 'You can not leave the organization as you are the owner');
   }
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -702,20 +645,11 @@ const leaveOrg = asyncFunc(async (req, res) => {
     session.endSession();
     return res
       .status(200)
-      .json(
-        new ApiRes(
-          200,
-          null,
-          'You have successfully left the organization and all associated teams/projects'
-        )
-      );
+      .json(new ApiRes(200, null, 'You have successfully left the organization and all associated teams/projects'));
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    throw new ApiError(
-      500,
-      'Failed to leave organization due to a server error, Please try again later.'
-    );
+    throw new ApiError(500, 'Failed to leave organization due to a server error, Please try again later.');
   }
 });
 
@@ -733,9 +667,7 @@ const transferOwnershipOfOrg = asyncFunc(async (req, res) => {
   if (memberId.toString() == org.createdBy.toString()) {
     throw new ApiError(400, 'This is alredy owner of this Organization');
   }
-  const isMemberInOrg = org.members.some(
-    m => m.member.toString() == memberId.toString()
-  );
+  const isMemberInOrg = org.members.some(m => m.member.toString() == memberId.toString());
   if (!isMemberInOrg) {
     throw new ApiError(400, 'This member not part of this Organization');
   }
@@ -822,9 +754,7 @@ const transferOwnershipOfOrg = asyncFunc(async (req, res) => {
       select: 'userName email profilePhoto',
     },
   ]);
-  return res
-    .status(200)
-    .json(new ApiRes(200, populatedOrg, 'Ownership successfully transferred'));
+  return res.status(200).json(new ApiRes(200, populatedOrg, 'Ownership successfully transferred'));
 });
 
 export {

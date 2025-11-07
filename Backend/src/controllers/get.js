@@ -7,7 +7,6 @@ import User from '../model/User.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiRes } from '../utils/ApiRes.js';
 import { asyncFunc } from '../utils/asyncFunc.js';
-import { redisPub } from '../config/redis.js';
 
 const getOrg = asyncFunc(async (req, res) => {
   const org = req.org;
@@ -156,9 +155,7 @@ const getOrg = asyncFunc(async (req, res) => {
     },
   ]);
   // await redisPub.set(cacheKey, JSON.stringify(populatedOrg), 'EX', 10800);
-  return res
-    .status(200)
-    .json(new ApiRes(200, populatedOrg, 'Organization fetch successfully !'));
+  return res.status(200).json(new ApiRes(200, populatedOrg, 'Organization fetch successfully !'));
 });
 
 const getProject = asyncFunc(async (req, res) => {
@@ -255,9 +252,7 @@ const getProject = asyncFunc(async (req, res) => {
       ],
     },
   ]);
-  return res
-    .status(200)
-    .json(new ApiRes(200, populatedProject, 'Project fetch successfully'));
+  return res.status(200).json(new ApiRes(200, populatedProject, 'Project fetch successfully'));
 });
 
 export { getOrg, getProject };
