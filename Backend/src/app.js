@@ -16,7 +16,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['http://localhost:5174', 'http://localhost:5173'],
+    origin: ['http://localhost:5174', 'http://localhost:5173','https://tasky-ten-beta.vercel.app'],
     credentials: true,
   })
 );
